@@ -18,6 +18,10 @@ on:
 
 name: Quarto Publish
 
+concurrency:
+  group: ${{ format('{0} - {1} - {2}', github.workflow, github.ref, inputs.prerelease && 'prerelease' || 'main') }}
+  cancel-in-progress: true
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -43,7 +47,7 @@ jobs:
       - name: Render 
         uses: quarto-dev/quarto-actions/render@v2
         env:
-          QUARTO_PROFILE: ${{ (inputs.prerelease == 'true' || (contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref == 'refs/heads/prerelease')) && 'prerelease-docs' || '' }}
+          QUARTO_PROFILE: ${{ (inputs.prerelease || (contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref == 'refs/heads/prerelease')) && 'prerelease-docs' || '' }}
 
       - name: Publish release website
         # Only do this step if 
